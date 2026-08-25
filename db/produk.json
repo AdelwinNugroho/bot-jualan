@@ -1,0 +1,34 @@
+{
+  "capcut1bln": {
+    "nama": "CapCut Premium 1 Bulan",
+    "tipe": "digital",
+    "harga": 15000,
+    "stok": [],
+    "deskripsi": "Full garansi 1 bulan",
+    "gambar": ""
+  },
+  "netflix1bln": {
+    "nama": "Netflix Premium 1 Bulan",
+    "tipe": "digital",
+    "harga": 35000,
+    "stok": [],
+    "deskripsi": "Akun sharing, garansi full",
+    "gambar": ""
+  },
+  "canva1bln": {
+    "nama": "Canva Pro 1 Bulan",
+    "tipe": "digital",
+    "harga": 15000,
+    "stok": [],
+    "deskripsi": "Full akses fitur Pro",
+    "gambar": ""
+  },
+  "iphone11promax": {
+    "nama": "Iphone 11 Pro Max",
+    "tipe": "fisik",
+    "harga": 8,
+    "stok": 2,
+    "deskripsi": "Dijual terbatas",
+    "gambar": ""
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "owner": [
+    "6282324699762"
+  ],
+  "botname": "Bot-Jualan",
+  "storename": "Bot-Jualan",
+  "prefix": ".",
+  "qris": "./qris.jpg",
+  "api": {
+    "key": "TermAI-G6Dhoqxd1BiWUTn3",
+    "url": "https://api.termai.cc"
+  },
+  "jam_operasi": "08:00 - 22:00",
+  "ai_active": true,
+  "logic": "Kamu adalah asisten customer service toko online bernama Bot-Jualan. Tugasmu membantu pembeli dengan ramah dan sopan. Jelaskan produk berdasarkan katalog yang tersedia. Informasikan jam operasional toko jika ditanya. Jika ada yang mau beli, arahkan untuk pakai command .beli <kode> <jumlah>. Jawab singkat, jelas, dan informatif."
+}

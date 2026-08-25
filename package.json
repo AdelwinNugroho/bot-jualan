@@ -1,0 +1,16 @@
+{
+  "name": "bot-jualan",
+  "version": "1.0.0",
+  "description": "Bot Jualan WhatsApp",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "github:Rifza123/baileys",
+    "chalk": "^3.0.0",
+    "pino": "^9.0.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

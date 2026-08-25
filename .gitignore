@@ -1,0 +1,5 @@
+node_modules/
+session/
+*.log
+db/orders.json
+qris.jpg
