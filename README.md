@@ -5,7 +5,7 @@ WhatsApp bot untuk jualan produk fisik & digital.
 ## Instalasi
 
 ```bash
-cd /home/ai-server/bot-jualan
+cd bot-jualan
 npm install
 ```
 
