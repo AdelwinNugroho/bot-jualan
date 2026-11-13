@@ -1,9 +1,10 @@
 {
   "owner": [
-    "6282324699762"
+    "6282324699762",
+    "204342246248547"
   ],
-  "botname": "Bot-Jualan",
-  "storename": "Bot-Jualan",
+  "botname": "AdelwinNL-Store",
+  "storename": "AdelwinNL-Store",
   "prefix": ".",
   "qris": "./qris.jpg",
   "api": {

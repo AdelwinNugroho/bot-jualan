@@ -19,7 +19,13 @@
     "nama": "Canva Pro 1 Bulan",
     "tipe": "digital",
     "harga": 15000,
-    "stok": [],
+    "stok": [
+      "Stok #1",
+      "Stok #2",
+      "Stok #3",
+      "Stok #4",
+      "Stok #5"
+    ],
     "deskripsi": "Full akses fitur Pro",
     "gambar": ""
   },

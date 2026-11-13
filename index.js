@@ -24,7 +24,7 @@ const DB_ORDERS = path.join(__dirname, 'db', 'orders.json');
 const CONFIG = path.join(__dirname, 'config.json');
 
 let config = JSON.parse(readFileSync(CONFIG, 'utf8'));
-const { owner, storename, prefix } = config;
+const { owner, prefix } = config;
 
 function saveConfig() {
   writeFileSync(CONFIG, JSON.stringify(config, null, 2));
@@ -54,9 +54,16 @@ function genOrderId() {
   return 'ORD-' + id;
 }
 
-function isOwner(jid) {
-  const num = jid.split('@')[0].split(':')[0];
-  return owner.includes(num);
+async function isOwner(jid) {
+  const raw = jid.split('@')[0].split(':')[0];
+  if (owner.includes(raw)) return true;
+  if (jid.endsWith('@lid')) {
+    try {
+      const pn = await sock.signalRepository.lidMapping.getPNForLID(jid);
+      if (pn && owner.includes(pn.split('@')[0])) return true;
+    } catch {}
+  }
+  return false;
 }
 
 function stokCount(produk) {
@@ -164,7 +171,7 @@ async function connectBot() {
       qrcode.generate(qr, { small: true });
     }
     if (connection === 'open') {
-      console.log(chalk.green(`\n✅ ${storename} terhubung!\n`));
+      console.log(chalk.green(`\n✅ ${config.storename} terhubung!\n`));
     }
     if (connection === 'close') {
       const code = lastDisconnect?.error?.output?.statusCode;
@@ -212,6 +219,30 @@ async function handleMessage(msg) {
   } else {
     sender = msg.key.participant || jid;
   }
+
+  // Resolve WhatsApp's new LID (login-id) back to the phone number so
+  // owner/permission checks based on phone numbers keep working.
+  if (sender.endsWith('@lid')) {
+    try {
+      const pn = await sock.signalRepository.lidMapping.getPNForLID(sender);
+      if (pn) sender = pn + '@s.whatsapp.net';
+    } catch (e) {
+      console.error('[LID-RESOLVE] getPNForLID gagal:', e?.message || e);
+    }
+    // Fallback: cari mapping LID->phone dari contact store lokal
+    if (sender.endsWith('@lid')) {
+      try {
+        const contacts = sock.store?.contacts || {};
+        for (const j of Object.keys(contacts)) {
+          const c = contacts[j];
+          if (c?.lid === sender && c?.pn) {
+            sender = c.pn + '@s.whatsapp.net';
+            break;
+          }
+        }
+      } catch {}
+    }
+  }
   const text = getText(msg).trim();
   if (!text) return;
 
@@ -253,7 +284,7 @@ async function handleMessage(msg) {
   const argText = args.join(' ');
 
   const reply = (t, extra = {}) => sock.sendMessage(jid, { text: t, ...extra }, { quoted: msg });
-  const owns = fromMe || isOwner(sender);
+  const owns = fromMe || (await isOwner(sender));
 
   switch (cmd) {
     case 'menu':
@@ -263,6 +294,17 @@ async function handleMessage(msg) {
     case 'shop':
     case 'produk':
       return reply(shopText());
+
+    case 'rename-bot': {
+      if (!owns) return reply('Command khusus owner.');
+      const namaBaru = argText.trim();
+      if (!namaBaru) return reply(`Format:\n${prefix}rename-bot <nama bot baru>`);
+      if (namaBaru.length > 25) return reply('Nama bot maksimal 25 karakter.');
+      config.botname = namaBaru;
+      config.storename = namaBaru;
+      saveConfig();
+      return reply(`✅ Nama bot diubah menjadi *${namaBaru}*.\nPerubahan berlaku langsung (untuk AI profile). Untuk nama tampilan di WhatsApp, edit field di config.json bila perlu.`);
+    }
 
     case 'detail': {
       if (!argText) return reply(`Contoh: ${prefix}detail capcut1bln`);
@@ -422,7 +464,13 @@ async function handleMessage(msg) {
       if (!p) return reply('Produk tidak ditemukan.');
       if (p.tipe === 'digital') {
         if (!Array.isArray(p.stok)) p.stok = [];
-        p.stok.push(nilai);
+        const jumlah = parseInt(nilai);
+        if (!isNaN(jumlah) && jumlah > 0 && !nilai.includes('|')) {
+          const start = p.stok.length;
+          for (let i = 1; i <= jumlah; i++) p.stok.push(`Stok #${start + i}`);
+        } else {
+          p.stok.push(nilai);
+        }
         saveDB(DB_PRODUK, produk);
         return reply(`✅ Stok akun ditambahkan ke ${kode}. Total stok: ${p.stok.length}`);
       } else {
@@ -446,8 +494,10 @@ async function handleMessage(msg) {
 
     case 'acc': {
       if (!owns) return reply('Command khusus owner.');
+      const id = args.shift()?.toUpperCase();
+      if (!id) return reply(`Format: ${prefix}acc <id_order> [detail_akun_custom]`);
+
       const orders = loadDB(DB_ORDERS);
-      const id = argText.toUpperCase();
       const o = orders[id];
       if (!o) return reply('Order tidak ditemukan.');
       if (o.status !== 'pending') return reply(`Order ini sudah berstatus: ${o.status}`);
@@ -455,17 +505,33 @@ async function handleMessage(msg) {
       const produk = loadDB(DB_PRODUK);
       const p = produk[o.item];
       if (!p) return reply('Produk order ini sudah tidak ada.');
-      if (stokCount(p) < o.jumlah) return reply(`Stok tidak cukup untuk acc. Sisa: ${stokCount(p)}`);
 
+      const customAkun = args.join(' ').trim();
       let deliver = '';
+
       if (p.tipe === 'digital') {
-        const akun = p.stok.splice(0, o.jumlah);
-        deliver = akun.map((a, i) => `${i + 1}. ${a}`).join('\n');
+        if (customAkun) {
+          // Jika owner mengetik detail akun custom secara manual
+          deliver = customAkun;
+        } else {
+          // Ambil otomatis dari stok database
+          if (stokCount(p) < o.jumlah) {
+            return reply(
+              `⚠️ Stok produk otomatis tidak cukup (sisa: ${stokCount(p)}).\n` +
+              `Kamu bisa kirim akun manual dengan:\n` +
+              `${prefix}acc ${id} <detail_akun>`
+            );
+          }
+          const akun = p.stok.splice(0, o.jumlah);
+          deliver = akun.map((a, i) => `${i + 1}. ${a}`).join('\n');
+          saveDB(DB_PRODUK, produk);
+        }
       } else {
-        p.stok = Number(p.stok) - o.jumlah;
+        p.stok = Math.max(0, Number(p.stok) - o.jumlah);
+        saveDB(DB_PRODUK, produk);
       }
+
       o.status = 'success';
-      saveDB(DB_PRODUK, produk);
       saveDB(DB_ORDERS, orders);
 
       if (p.tipe === 'digital') {
@@ -484,7 +550,9 @@ async function handleMessage(msg) {
             `Pesanan fisik kamu diproses. Admin akan menghubungi untuk pengiriman. 📦`,
         });
       }
-      return reply(`✅ Order ${id} berhasil di-acc. Sisa stok ${o.item}: ${stokCount(p)}`);
+
+      const infoTipe = p.tipe === 'digital' && customAkun ? ' (Custom Manual)' : ` (Sisa stok: ${stokCount(p)})`;
+      return reply(`✅ Order ${id} berhasil di-acc${infoTipe}!`);
     }
 
     case 'tolak': {
@@ -531,7 +599,7 @@ async function handleMessage(msg) {
 
 function menuText(owns) {
   let t =
-    `🛒 *${storename}*\n\n` +
+    `🛒 *${config.storename}*\n\n` +
     `*MENU PEMBELI*\n` +
     `${prefix}shop — lihat katalog\n` +
     `${prefix}detail <kode> — detail produk\n` +
@@ -546,11 +614,12 @@ function menuText(owns) {
       `${prefix}delproduk <kode>\n` +
       `${prefix}addstok <kode> <nilai>\n` +
       `${prefix}listorder\n` +
-      `${prefix}acc <id> — konfirmasi bayar\n` +
+      `${prefix}acc <id> [detail_akun] — konfirmasi bayar & kirim akun\n` +
       `${prefix}tolak <id>\n` +
       `${prefix}aion — aktifkan AI CS\n` +
       `${prefix}aioff — nonaktifkan AI CS\n` +
-      `${prefix}setjam <jam> — ubah jam operasi\n`;
+      `${prefix}setjam <jam> — ubah jam operasi\n` +
+      `${prefix}rename-bot <nama> — ubah nama bot/toko\n`;
   }
   return t.trim();
 }
@@ -562,7 +631,7 @@ function shopText() {
   const fisik = entries.filter(([, p]) => p.tipe === 'fisik');
   const digital = entries.filter(([, p]) => p.tipe === 'digital');
 
-  let t = `🛒 *KATALOG ${storename.toUpperCase()}*\n`;
+  let t = `🛒 *KATALOG ${config.storename.toUpperCase()}*\n`;
 
   if (digital.length) {
     t += `\n💳 *PRODUK DIGITAL*\n`;
