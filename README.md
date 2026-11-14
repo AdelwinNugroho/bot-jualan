@@ -4,17 +4,17 @@ WhatsApp Bot open-source berbasis Node.js (@whiskeysockets/baileys) untuk otomas
 
 ---
 
-## ⚡ Fitur Utama
+## Fitur Utama
 
-- 🛍️ **Katalog Interaktif**: Cek produk via `.menu` dan `.shop`.
-- 💳 **Auto-Invoice & QRIS**: Generate order ID dan invoice pembayaran QRIS otomatis.
-- 📦 **Stok Digital & Fisik**: Mendukung stok angka (fisik) dan antrean akun / voucher (digital).
-- 🚀 **Auto-Delivery Instan**: Sekali klik `.acc <id>`, bot otomatis mengirimkan detail akun (email & password) langsung ke nomor WhatsApp pembeli!
-- 🤖 **Fitur AI CS & Broadcast**: Terintegrasi bantuan AI untuk customer service dan broadcast pesan.
+- **Katalog Interaktif**: Cek produk via `.menu` dan `.shop`.
+- **Auto-Invoice & QRIS**: Generate order ID dan invoice pembayaran QRIS otomatis.
+- **Stok Digital & Fisik**: Mendukung stok angka (fisik) dan antrean akun / voucher (digital).
+- **Auto-Delivery Instan**: Sekali klik `.acc <id>`, bot otomatis mengirimkan detail akun (email & password) langsung ke nomor WhatsApp pembeli!
+- **Fitur AI CS & Broadcast**: Terintegrasi bantuan AI untuk customer service dan broadcast pesan.
 
 ---
 
-## 📦 Manajemen Stok Produk Digital
+## Manajemen Stok Produk Digital
 
 Produk digital di bot ini dapat menyimpan kredensial akun (email, password, PIN, link redeem) secara aman di database lokal (`db/produk.json`).
 
@@ -38,13 +38,13 @@ Gunakan perintah `.addstok` dengan format pemisah pipa (`|`):
 .addstok netflix1bln buyerone@gmail.com|passNetflix123
 .addstok netflix1bln buyertwo@gmail.com|passNetflix456
 ```
-> 💡 *Catatan:* Kamu juga bisa memasukkan link invite atau format voucher, misalnya:
+> *Catatan:* Kamu juga bisa memasukkan link invite atau format voucher, misalnya:
 > `.addstok canva https://canva.com/brand/join?token=xyz...`
 > Setiap kali kamu menjalankan `.addstok`, akun akan tersimpan ke dalam antrean stok produk tersebut.
 
 ---
 
-## 🚀 Alur Transaksi & Pengiriman Akun ke Pembeli
+## Alur Transaksi & Pengiriman Akun ke Pembeli
 
 ```mermaid
 flowchart TD
@@ -70,14 +70,14 @@ Bot akan secara otomatis:
 3. **Mengirimkan WhatsApp pribadi (DM) langsung ke nomor pembeli** dengan pesan seperti ini:
 
 ```text
-✅ *Pembayaran Dikonfirmasi*
+*Pembayaran Dikonfirmasi*
 
-🧾 ORD-8F2A — Netflix Premium 1 Bulan x1
+ORD-8F2A — Netflix Premium 1 Bulan x1
 
-🔑 *Detail Akun:*
+*Detail Akun:*
 1. buyerone@gmail.com|passNetflix123
 
-Terima kasih sudah berbelanja! 🙏
+Terima kasih sudah berbelanja!
 ```
 
 ---
@@ -95,7 +95,7 @@ Bot akan langsung meneruskan kredensial tersebut ke pembeli tanpa memotong stok 
 
 ---
 
-## 📋 Daftar Command Lengkap
+## Daftar Command Lengkap
 
 ### Menu Pembeli
 | Command | Parameter | Fungsi |
@@ -123,7 +123,7 @@ Bot akan langsung meneruskan kredensial tersebut ke pembeli tanpa memotong stok 
 
 ---
 
-## 🛠️ Instalasi & Menjalankan Bot
+## Instalasi & Menjalankan Bot
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -148,5 +148,5 @@ Pilih opsi koneksi:
 
 ---
 
-## 📄 Lisensi
-Proyek ini 100% open-source dan dirilis di bawah lisensi MIT. Silakan gunakan dan kembangkan untuk kebutuhan tokomu! ⭐ Jangan lupa beri Star di repositori GitHub ya!
+## Lisensi
+Proyek ini 100% open-source dan dirilis di bawah lisensi MIT. Silakan gunakan dan kembangkan untuk kebutuhan tokomu! Jangan lupa beri Star di repositori GitHub ya!
